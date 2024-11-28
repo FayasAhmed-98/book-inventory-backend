@@ -2,7 +2,6 @@ package com.example.book_inventory.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -15,14 +14,6 @@ public class JwtTokenUtil {
     private final SecretKey jwtSecretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     private static final int jwtExpirationMs = 86400000; // 1 day
 
-    public String generateJwtToken(String email) {
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-                .signWith(jwtSecretKey, SignatureAlgorithm.HS512)
-                .compact();
-    }
     // Generate a JWT token
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
