@@ -1,6 +1,7 @@
 package com.example.book_inventory.security;
 
-import com.example.book_inventory.repository.UserRepository;
+import com.example.book_inventory.exception.CustomAccessDeniedHandler;
+import com.example.book_inventory.exception.CustomAuthenticationEntryPoint;
 import com.example.book_inventory.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,10 +20,18 @@ public class SecurityConfig {
 
     private final JwtTokenUtil jwtTokenUtil;
     private final CustomUserDetailsService customUserDetailsService;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-    public SecurityConfig(JwtTokenUtil jwtTokenUtil, UserRepository userRepository, CustomUserDetailsService customUserDetailsService) {
+    // Constructor injection for Custom Authentication and Access Denied Handlers
+    public SecurityConfig(JwtTokenUtil jwtTokenUtil,
+                          CustomUserDetailsService customUserDetailsService,
+                          CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+                          CustomAccessDeniedHandler customAccessDeniedHandler) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.customUserDetailsService = customUserDetailsService;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
     }
 
     @Bean
@@ -30,9 +39,13 @@ public class SecurityConfig {
         http.csrf().disable()
                 .authorizeHttpRequests()
                 .requestMatchers("/auth/login", "/auth/signup").permitAll()
-                .requestMatchers("/books/**").hasRole("ADMIN")
-                .requestMatchers("/books/search/**").hasAnyRole("USER", "ADMIN")
+                .requestMatchers("/books/**").hasAuthority("MANAGE_BOOKS")
+                .requestMatchers("/books/view/**").hasAuthority("VIEW_BOOKS")
                 .anyRequest().authenticated()
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(customAuthenticationEntryPoint) // Custom entry point for unauthenticated users
+                .accessDeniedHandler(customAccessDeniedHandler)           // Custom handler for access denied
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(
                         authenticationManager(http.getSharedObject(AuthenticationConfiguration.class)),
