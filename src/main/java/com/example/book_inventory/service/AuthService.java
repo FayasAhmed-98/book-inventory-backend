@@ -7,12 +7,11 @@ import com.example.book_inventory.exception.InvalidCredentialsException;
 import com.example.book_inventory.exception.UserAlreadyExistsException;
 import com.example.book_inventory.model.User;
 import com.example.book_inventory.model.Role;
+import com.example.book_inventory.repository.RoleRepository;
 import com.example.book_inventory.repository.UserRepository;
 import com.example.book_inventory.security.CustomUserDetails;
 import com.example.book_inventory.security.JwtTokenUtil;
-import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,13 +26,10 @@ public class AuthService {
     private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
-    @Lazy
-    private AuthenticationManager authenticationManager;
-
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private RoleRepository roleRepository;
     /**
      * Registers a new user.
      *
@@ -49,20 +45,24 @@ public class AuthService {
             throw new UserAlreadyExistsException("Email is already in use.");
         }
 
-        // Determine user role based on the email domain
-        Role role = registerRequest.getEmail().endsWith("@azendtech.com") ? Role.ADMIN : Role.USER;
+        // Determine the role based on the email domain
+        String roleName = registerRequest.getEmail().endsWith("@azendtech.com") ? "ADMIN" : "USER";
 
-        // Create a new user object and populate its fields
+        // Fetch the Role entity from the database
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found: " + roleName));
+
+        // Create a new User object and populate its fields
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword())); // Encrypt the password
-        user.setRole(role);
+        user.setRole(role); // Assign the role
 
-        // Save the user to the database
+        // Save the User to the database
         userRepository.save(user);
 
-        return "User registered successfully as " + role.name();
+        return "User registered successfully with role: " + role.getName();
     }
 
     /**
@@ -88,7 +88,7 @@ public class AuthService {
         return new AuthResponse(
                 "Login successful",
                 user.getUsername(),
-                user.getRole().name(),
+                user.getRole().getName(),
                 jwt
         );
     }
