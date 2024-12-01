@@ -17,11 +17,7 @@ public class Role {
     @Column(nullable = false, unique = true)
     private String name; // e.g., "USER", "ADMIN"
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "role_permissions",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Permission> permissions = new HashSet<>();
+
 }

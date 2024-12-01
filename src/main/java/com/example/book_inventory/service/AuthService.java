@@ -73,7 +73,7 @@ public class AuthService {
      */
     public AuthResponse authenticateUser(LoginRequest authRequest) {
         // Try to find user by username or email
-        User user = userRepository.findByUsernameOrEmail(authRequest.getUsername(), authRequest.getUsername())
+        User user = userRepository.findByUsername(authRequest.getUsername())
                 .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
 
         // Check if the provided password matches the stored hashed password

@@ -38,9 +38,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/auth/login", "/auth/signup").permitAll()
-                .requestMatchers("/books/**").hasAuthority("MANAGE_BOOKS")
-                .requestMatchers("/books/view/**").hasAuthority("VIEW_BOOKS")
+                .requestMatchers("/auth/login", "/auth/signup","/books/view").permitAll()
+                // For /books/add, /books/update, /books/delete, only users with MANAGE_BOOKS authority are allowed
+                .requestMatchers("/books/add", "/books/update/**", "/books/delete/**").hasAuthority("MANAGE_BOOKS")
+                // For /books/view, /books/view/search, and /books/get, users with VIEW_BOOKS authority can access
+                .requestMatchers( "/books/view/search", "/books/get/**").hasAuthority("VIEW_BOOKS")
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling()
@@ -52,6 +54,7 @@ public class SecurityConfig {
                         jwtTokenUtil,
                         customUserDetailsService
                 ), UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }

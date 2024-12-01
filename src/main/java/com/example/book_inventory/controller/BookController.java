@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/books")
+@CrossOrigin(origins = "http://localhost:5173")
 public class BookController {
 
     private final BookService bookService;
@@ -22,6 +23,7 @@ public class BookController {
 
     // Add a book (Only Admin with MANAGE_BOOKS permission)
     @PreAuthorize("hasAuthority('MANAGE_BOOKS')")
+    @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping("/add")
     public ResponseEntity<Book> addBook(@RequestBody Book book) {
         return ResponseEntity.ok(bookService.addBook(book));
@@ -44,7 +46,7 @@ public class BookController {
 
     // Get all books (Both Admin and User with VIEW_BOOKS permission)
     @PreAuthorize("hasAuthority('VIEW_BOOKS')")
-    @GetMapping
+    @GetMapping("/view")
     public ResponseEntity<List<Book>> getAllBooks() {
         return ResponseEntity.ok(bookService.getAllBooks());
     }
@@ -59,7 +61,7 @@ public class BookController {
 
     // Search books by title, author, or genre (Both Admin and User with VIEW_BOOKS permission)
     @PreAuthorize("hasAuthority('VIEW_BOOKS')")
-    @GetMapping("/search")
+    @GetMapping("/view/search")
     public ResponseEntity<List<Book>> searchBooks(@RequestParam(required = false) String keyword,
                                                   @RequestParam(required = false) String author,
                                                   @RequestParam(required = false) String genre) {

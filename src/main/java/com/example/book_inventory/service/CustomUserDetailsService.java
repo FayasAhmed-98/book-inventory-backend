@@ -2,6 +2,7 @@ package com.example.book_inventory.service;
 
 import com.example.book_inventory.model.User;
 import com.example.book_inventory.repository.UserRepository;
+import com.example.book_inventory.security.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,16 +18,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
-        // Search for user by username or email
-        User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + usernameOrEmail));
-
-        // Build UserDetails object for Spring Security
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername()) // Use username for principal
-                .password(user.getPassword()) // Encoded password
-                .authorities("ROLE_" + user.getRole().getName()) // Add role as a granted authority
-                .build();
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+        return new CustomUserDetails(user);
     }
 }

@@ -6,7 +6,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class CustomUserDetails implements UserDetails {
 
@@ -18,8 +19,17 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Convert the role into a GrantedAuthority for Spring Security
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
+        Set<GrantedAuthority> authorities = new HashSet<>();
+
+        // Add role as an authority
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
+
+        // Add permissions as authorities
+        user.getRole().getPermissions().forEach(permission ->
+                authorities.add(new SimpleGrantedAuthority(permission.getName()))
+        );
+
+        return authorities;
     }
 
     @Override
